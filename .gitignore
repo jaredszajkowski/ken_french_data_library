@@ -165,6 +165,8 @@ target/
 ~$*
 
 .doit.db.db
+.doit.db
+.doit.db.*
 .doit-db.sqlite
 
 *Thumbs.db
