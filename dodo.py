@@ -20,18 +20,18 @@ os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1"
 ## Helper functions for automatic execution of Jupyter notebooks
 # fmt: off
 def jupyter_execute_notebook(notebook_path):
-    return f"jupyter nbconvert --execute --to notebook --ClearMetadataPreprocessor.enabled=True --inplace {notebook_path}"
+    return f"jupyter nbconvert --execute --to notebook --ClearMetadataPreprocessor.enabled=True --inplace '{notebook_path}'"
 def jupyter_to_html(notebook_path, output_dir=OUTPUT_DIR):
-    return f"jupyter nbconvert --to html --output-dir={output_dir} {notebook_path}"
+    return f"jupyter nbconvert --to html --output-dir='{output_dir}' '{notebook_path}'"
 def jupyter_to_md(notebook_path, output_dir=OUTPUT_DIR):
     """Requires jupytext"""
-    return f"jupytext --to markdown --output-dir={output_dir} {notebook_path}"
+    return f"jupytext --to markdown --output-dir='{output_dir}' '{notebook_path}'"
 def jupyter_to_python(notebook_path, notebook, build_dir):
     """Convert a notebook to a python script"""
-    return f"jupyter nbconvert --to python {notebook_path} --output _{notebook}.py --output-dir {build_dir}"
+    return f"jupyter nbconvert --to python '{notebook_path}' --output _{notebook}.py --output-dir '{build_dir}'"
 def jupyter_clear_output(notebook_path):
     """Clear the output of a notebook"""
-    return f"jupyter nbconvert --ClearOutputPreprocessor.enabled=True --ClearMetadataPreprocessor.enabled=True --inplace {notebook_path}"
+    return f"jupyter nbconvert --ClearOutputPreprocessor.enabled=True --ClearMetadataPreprocessor.enabled=True --inplace '{notebook_path}'"
 # fmt: on
 
 
@@ -41,9 +41,9 @@ def mv(from_path, to_path):
     to_path = Path(to_path)
     to_path.mkdir(parents=True, exist_ok=True)
     if OS_TYPE == "nix":
-        command = f"mv {from_path} {to_path}"
+        command = f"mv '{from_path}' '{to_path}'"
     else:
-        command = f"move {from_path} {to_path}"
+        command = f"move '{from_path}' '{to_path}'"
     return command
 
 
@@ -103,6 +103,23 @@ def task_format():
     }
 
 
+def task_tests():
+    """Run the pytest suite (golden-value checks against the pulled data)."""
+    return {
+        "actions": ["python -m pytest ./src/test_parquet_values.py -v"],
+        "file_dep": [
+            "./src/test_parquet_values.py",
+            "./src/pull_fama_french_25_portfolios.py",
+            DATA_DIR / "french_portfolios_25_daily_size_and_bm.parquet",
+            DATA_DIR / "french_portfolios_25_daily_size_and_op.parquet",
+            DATA_DIR / "french_portfolios_25_daily_size_and_inv.parquet",
+        ],
+        "task_dep": ["pull"],
+        "verbosity": 2,
+        "uptodate": [False],
+    }
+
+
 notebook_tasks = {
     "summary_ken_french_ipynb": {
         "path": "./src/summary_ken_french_ipynb.py",
@@ -135,6 +152,7 @@ def task_run_notebooks():
                 jupyter_to_html(notebook_path),
                 mv(notebook_path, OUTPUT_DIR),
             ],
+            "task_dep": ["tests"],
             "file_dep": [
                 pyfile_path,
                 *notebook_tasks[notebook]["file_dep"],
@@ -161,7 +179,7 @@ def task_generate_charts():
             OUTPUT_DIR / "french_portfolios_cumulative_returns.html",
         ],
         "verbosity": 2,
-        "task_dep": ["format"],
+        "task_dep": ["format", "tests"],
     }
 
 
