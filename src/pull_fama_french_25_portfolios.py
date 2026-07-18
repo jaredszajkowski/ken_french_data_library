@@ -33,7 +33,7 @@ DATA_INFO = {
     "Size and Operating Profitability Daily": {
         "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/25_Portfolios_ME_OP_5x5_daily_CSV.zip",
         "zip": "25_Portfolios_ME_OP_daily_CSV.zip",
-        "csv": "25_Portfolios_ME_OP_5x5_daily.csv",
+        "csv": "25_Portfolios_ME_OP_5x5_Daily.csv",
         "parquet": "french_portfolios_25_daily_size_and_op.parquet",
     },
     "Size and Investment": {
