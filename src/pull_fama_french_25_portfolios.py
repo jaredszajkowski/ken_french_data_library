@@ -11,6 +11,12 @@ BASE_DIR = chartbook.env.get_project_root()
 DATA_DIR = BASE_DIR / "_data"
 MIN_N_ROWS_EXPECTED = 500
 
+# Ken French encodes missing observations as -99.99 (no return available) and
+# -999 (no constituents in the portfolio). These must become NaN before the
+# percent-to-decimal conversion, otherwise -99.99 reads as a -99.99% return and
+# destroys any compounded series built from it.
+MISSING_VALUE_CODES = [-99.99, -999]
+
 DATA_INFO = {
     "Size and Book-to-Market": {
         "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/25_Portfolios_5x5_CSV.zip",
@@ -138,7 +144,13 @@ def load_data_into_dataframe(
                 + "Validate the csv file or set 'check_n_rows=False'."
             )
 
-    return df.set_index("date").apply(lambda df: df.astype(float) / 100).reset_index()
+    return (
+        df.set_index("date")
+        .apply(lambda df: df.astype(float))
+        .mask(lambda df: df.isin(MISSING_VALUE_CODES))
+        .div(100)
+        .reset_index()
+    )
 
 
 def save_dataframe_to_parquet(
