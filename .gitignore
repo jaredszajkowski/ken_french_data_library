@@ -170,3 +170,5 @@ target/
 .doit-db.sqlite
 
 *Thumbs.db
+
+.vscode/
